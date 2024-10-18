@@ -1,8 +1,7 @@
-import { User, UserRole } from "../../DAL/Entities/User";
-
-import { AppDataSource } from "../../DAL/Database";
+import { AppDataSource } from "../../../common/database/Database";
 import { Router } from "express";
-import { authenticateToken } from "../Middlewares/AuthMiddleware";
+import { User } from "../dal/Entities/User";
+import { authenticateToken } from "../../../common/authentication/AuthMiddleware";
 
 const router = Router();
 

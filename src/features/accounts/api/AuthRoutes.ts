@@ -1,4 +1,4 @@
-import { login, register } from "../../Application/Services/AuthServices";
+import { login, register } from "../application/services/AuthServices";
 
 import { Router } from "express";
 

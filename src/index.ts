@@ -1,6 +1,6 @@
-import { AppDataSource } from "./DAL/Database";
-import AuthRoutes from "./API/Routes/AuthRoutes";
-import UserRoutes from "./API/Routes/UserRoutes";
+import { AppDataSource } from "./common/database/Database";
+import AuthRoutes from "./features/accounts/api/AuthRoutes";
+import UserRoutes from "./features/accounts/api/UserRoutes";
 import dotenv from "dotenv";
 import express from "express";
 

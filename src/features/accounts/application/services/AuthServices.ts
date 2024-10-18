@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { User, UserRole } from "../../DAL/Entities/User";
+import { User, UserRole } from "../../dal/Entities/User";
 
-import { AppDataSource } from "../../DAL/Database";
+import { AppDataSource } from "../../../../common/database/Database";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
