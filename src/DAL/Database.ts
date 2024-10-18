@@ -1,15 +1,13 @@
-// src/database.ts
-
 import { DataSource } from "typeorm";
-import { User } from "./Entities/User";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const AppDataSource = new DataSource({
   type: "postgres",
-  host: "localhost",
-  port: 5432,
-  username: "user",
-  password: "pass",
-  database: "books",
-  entities: [User],
-  synchronize: true, // Auto-creates the tables; set to false in production
+  url:  process.env.DATABASE_URL,
+  entities: [
+    __dirname + '/Entities/*.{js,ts}'
+  ],
+  synchronize: true,
 });
