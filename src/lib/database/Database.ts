@@ -3,8 +3,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-console.log(__dirname)
-
 export const AppDataSource = new DataSource({
   type: "postgres",
   url:  process.env.DATABASE_URL,
