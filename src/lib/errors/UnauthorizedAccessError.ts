@@ -1,9 +1,9 @@
 import { IDomainError } from "./IDomainError";
 
 export default class UnauthorizedAccessError extends IDomainError {
-    statusCode: number;
+    private static readonly _httpCode = 400;
+
     constructor() {
-        super("Invalid or expired token");
-        this.statusCode = 403;
+        super(UnauthorizedAccessError._httpCode, "Invalid or expired token");
     }
 }

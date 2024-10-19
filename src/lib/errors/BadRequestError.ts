@@ -1,9 +1,9 @@
 import { IDomainError } from "./IDomainError";
 
 export default class BadRequestError extends IDomainError {
-    statusCode: number;
+    private static readonly _httpCode = 400;
+
     constructor() {
-        super("bad request");
-        this.statusCode = 400;
+        super(BadRequestError._httpCode, "Bad request");
     }
 }

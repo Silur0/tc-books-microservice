@@ -1,9 +1,12 @@
 import { IDomainError } from "./IDomainError";
 
 export default class ForbiddenAccessError extends IDomainError {
-    statusCode: number;
+    private static readonly _httpCode = 400;
+
     constructor() {
-        super("Access Denied: No token provided");
-        this.statusCode = 401;
+        super(
+            ForbiddenAccessError._httpCode,
+            "Access Denied: No token provided"
+        );
     }
 }
