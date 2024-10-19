@@ -1,12 +1,12 @@
-import { Request, Response } from "express";
 import { User, UserRole } from "../../dal/Entities/User";
 
+import { AppDataSource } from "../../../../lib/database/Database";
 import InvalidLoginError from "../errors/InvalidLoginError";
 import { LoginRequest } from "../contracts/requests/LoginRequest";
 import { LoginResponse } from "../contracts/responses/LoginResponse";
 import { RegisterRequest } from "../contracts/requests/RegisterRequest";
+import { Repository } from "typeorm";
 import RequiredFieldError from "../../../../lib/errors/RequiredFieldError";
-import UserRepo from "../../dal/repo/UserRepo";
 import UsernameAlreadyTakenError from "../errors/UsernameAlreadyTakenError";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -14,6 +14,9 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET!;
 
 class AccountService {
+    private readonly userRepo: Repository<User> =
+        AppDataSource.getRepository(User);
+
     async register(req: RegisterRequest): Promise<void> {
         const { username, password } = req;
 
@@ -25,7 +28,9 @@ class AccountService {
             throw new RequiredFieldError("Password");
         }
 
-        const existingUser = await UserRepo.getUserByUsername(username);
+        const existingUser = await this.userRepo.findOneBy({
+            username: username,
+        });
 
         if (existingUser) {
             throw new UsernameAlreadyTakenError();
@@ -33,7 +38,13 @@ class AccountService {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        await UserRepo.addUser(username, hashedPassword);
+        const user = new User();
+
+        user.username = username;
+        user.password = hashedPassword;
+        user.userRole = UserRole.ADMIN;
+
+        await this.userRepo.save(user);
     }
 
     async login(req: LoginRequest): Promise<LoginResponse> {
@@ -47,7 +58,9 @@ class AccountService {
             throw new RequiredFieldError("Password");
         }
 
-        const user = await await UserRepo.getUserByUsername(username);
+        const user = await this.userRepo.findOneBy({
+            username: username,
+        });
 
         if (!user) {
             throw new InvalidLoginError();

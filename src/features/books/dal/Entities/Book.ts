@@ -7,27 +7,28 @@ import {
 } from "typeorm";
 
 @Entity()
-export class User {
+export class Book {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ unique: true })
-    username: string;
+    @Column()
+    isbn: string;
 
     @Column()
-    password: string;
+    title: string;
 
     @Column()
-    userRole: UserRole;
+    publicationYear: string;
+
+    @Column()
+    language: string;
+
+    @Column()
+    summary?: string;
 
     @CreateDateColumn()
     created_at: Date;
 
     @UpdateDateColumn()
     updated_at: Date;
-}
-
-export enum UserRole {
-    UNKNOWN = 0,
-    ADMIN = 1,
 }

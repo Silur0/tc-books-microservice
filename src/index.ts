@@ -1,5 +1,6 @@
 import AccountRoutes from "./features/accounts/api/AccountRoutes";
 import { AppDataSource } from "./lib/database/Database";
+import BookRoutes from "./features/books/api/BookRoutes";
 import ErrorMiddleware from "./lib/errors/middleware/ErrorMiddleware";
 import LanguageRoutes from "./features/languages/api/LanguageRoutes";
 import { Logger } from "./lib/logger/Logger";
@@ -17,6 +18,7 @@ app.use(Logger.audit);
 //* ROUTES
 app.use(AccountRoutes);
 app.use(LanguageRoutes);
+app.use(BookRoutes);
 
 //* Error Middleware
 app.use(ErrorMiddleware.handleError);
