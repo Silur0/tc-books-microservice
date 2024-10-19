@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
-import ForbiddenAccessError from "../errors/ForbiddenAccessError";
-import UnauthorizedAccessError from "../errors/UnauthorizedAccessError";
+import ForbiddenAccessError from "./errors/ForbiddenAccessError";
+import UnauthorizedAccessError from "./errors/UnauthorizedAccessError";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET!;

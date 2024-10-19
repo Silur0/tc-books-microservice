@@ -1,4 +1,4 @@
-import { IDomainError } from "./IDomainError";
+import { IDomainError } from "../../errors/IDomainError";
 
 export default class UnauthorizedAccessError extends IDomainError {
     private static readonly _httpCode = 400;

@@ -18,7 +18,7 @@ app.use(Logger.audit);
 app.use(AccountRoutes);
 app.use(LanguageRoutes);
 
-// *Error Middleware
+//* Error Middleware
 app.use(ErrorMiddleware.handleError);
 
 AppDataSource.initialize()

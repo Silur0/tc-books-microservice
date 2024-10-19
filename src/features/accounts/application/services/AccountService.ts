@@ -1,72 +1,69 @@
 import { Request, Response } from "express";
 import { User, UserRole } from "../../dal/Entities/User";
 
-import { AppDataSource } from "../../../../lib/database/Database";
+import InvalidLoginError from "../errors/InvalidLoginError";
+import { LoginRequest } from "../contracts/requests/LoginRequest";
+import { LoginResponse } from "../contracts/responses/LoginResponse";
+import { RegisterRequest } from "../contracts/requests/RegisterRequest";
+import RequiredFieldError from "../../../../lib/errors/RequiredFieldError";
+import UserRepo from "../../dal/repo/UserRepo";
+import UsernameAlreadyTakenError from "../errors/UsernameAlreadyTakenError";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
 class AccountService {
-    async register(req: Request, res: Response): Promise<void> {
-        const { username, password } = req.body;
+    async register(req: RegisterRequest): Promise<void> {
+        const { username, password } = req;
 
-        try {
-            const existingUser = await AppDataSource.manager.findOneBy(User, {
-                username,
-            });
-            if (existingUser) {
-                res.status(400).json({ message: "User already exists" });
-                return;
-            }
-
-            const hashedPassword = await bcrypt.hash(password, 10);
-            const user = new User();
-            user.username = username;
-            user.password = hashedPassword;
-            user.userRole = UserRole.ADMIN;
-
-            await AppDataSource.manager.save(user);
-
-            res.status(201).json({ message: "User registered successfully" });
-        } catch (error) {
-            res.status(500).json({ message: "Error registering user" });
+        if (!username) {
+            throw new RequiredFieldError("Username");
         }
+
+        if (!password) {
+            throw new RequiredFieldError("Password");
+        }
+
+        const existingUser = await UserRepo.getUserByUsername(username);
+
+        if (existingUser) {
+            throw new UsernameAlreadyTakenError();
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await UserRepo.addUser(username, hashedPassword);
     }
 
-    async login(req: Request, res: Response): Promise<void> {
-        const { username, password } = req.body;
+    async login(req: LoginRequest): Promise<LoginResponse> {
+        const { username, password } = req;
 
-        try {
-            const user = await AppDataSource.manager.findOneBy(User, {
-                username,
-            });
-            if (!user) {
-                res.status(400).json({
-                    message: "Invalid username or password",
-                });
-                return;
-            }
-
-            const isPasswordValid = await bcrypt.compare(
-                password,
-                user.password
-            );
-            if (!isPasswordValid) {
-                res.status(400).json({
-                    message: "Invalid username or password",
-                });
-                return;
-            }
-
-            const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
-                expiresIn: "1h",
-            });
-
-            res.json({ token });
-        } catch (error) {
-            res.status(500).json({ message: "Error logging in" });
+        if (!username) {
+            throw new RequiredFieldError("Username");
         }
+
+        if (!password) {
+            throw new RequiredFieldError("Password");
+        }
+
+        const user = await await UserRepo.getUserByUsername(username);
+
+        if (!user) {
+            throw new InvalidLoginError();
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            throw new InvalidLoginError();
+        }
+
+        const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+            expiresIn: "1h",
+        });
+
+        return new LoginResponse({ token: token });
     }
 }
 

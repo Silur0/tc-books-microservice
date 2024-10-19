@@ -1,15 +1,15 @@
-import { Request, Response } from "express";
-
-import BadRequestError from "../../../lib/errors/BadRequestError";
 import { Language } from "../dal/Entities/Language";
-
-const data = require("../dal/languages.json");
+import { PaginatedResponse } from "../../../lib/api/PaginatedResponse";
+import data from "../dal/languages.json";
 
 class LanguageService {
-    async getAll(req: Request, res: Response): Promise<Language[]> {
-        throw new BadRequestError();
-        res.status(200).json(data);
-        return data;
+    async getAll(): Promise<PaginatedResponse<Language>> {
+        return new PaginatedResponse<Language>({
+            page: 1,
+            count: data.length,
+            total: data.length,
+            items: data,
+        });
     }
 }
 

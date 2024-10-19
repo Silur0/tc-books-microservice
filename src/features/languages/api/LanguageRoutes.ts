@@ -11,7 +11,8 @@ router.get(
     AuthMiddleware.authenticateToken,
     async (req, res, next) => {
         try {
-            await LanguageService.getAll(req, res);
+            let result = await LanguageService.getAll();
+            res.send(result);
         } catch (error) {
             next(error);
         }
