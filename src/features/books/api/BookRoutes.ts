@@ -14,4 +14,13 @@ router.get(`/${PREFIX}`, async (req, res, next) => {
     }
 });
 
+router.post(`/${PREFIX}`, async (req, res, next) => {
+    try {
+        let result = await BooksService.create(req.body);
+        res.send(result);
+    } catch (error) {
+        next(error);
+    }
+});
+
 export default router;
