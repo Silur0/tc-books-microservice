@@ -39,11 +39,15 @@ class BooksService {
             .distinct(true)
             .getRawMany();
 
+        let resultSorted = result.sort(
+            (a, b) => Number(b.year) - Number(a.year)
+        );
+
         return new PaginatedResponse<PublicationYearResponse>({
             page: 1,
             count: result.length,
             total: result.length,
-            items: result,
+            items: resultSorted,
         });
     }
 
@@ -54,11 +58,13 @@ class BooksService {
             .distinct(true)
             .getRawMany();
 
+        let resultSorted = result.sort();
+
         return new PaginatedResponse<LanguageResponse>({
             page: 1,
             count: result.length,
             total: result.length,
-            items: result,
+            items: resultSorted,
         });
     }
 
