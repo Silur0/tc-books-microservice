@@ -23,4 +23,13 @@ router.post(`/${PREFIX}`, async (req, res, next) => {
     }
 });
 
+router.put(`/${PREFIX}/:id`, async (req, res, next) => {
+    try {
+        let result = await BooksService.update(req.params.id, req.body);
+        res.send(result);
+    } catch (error) {
+        next(error);
+    }
+});
+
 export default router;

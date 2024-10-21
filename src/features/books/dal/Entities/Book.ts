@@ -18,6 +18,9 @@ export class Book {
     title: string;
 
     @Column()
+    author: string;
+
+    @Column()
     publicationYear: string;
 
     @Column()

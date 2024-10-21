@@ -1,7 +1,7 @@
 import { IDomainError } from "../../errors/IDomainError";
 
 export default class ForbiddenAccessError extends IDomainError {
-    private static readonly _httpCode = 400;
+    private static readonly _httpCode = 403;
 
     constructor() {
         super(

@@ -1,6 +1,7 @@
 import { User, UserRole } from "../../dal/Entities/User";
 
 import { AppDataSource } from "../../../../lib/database/Database";
+import AuthMiddleware from "../../../../lib/authentication/AuthMiddleware";
 import InvalidLoginError from "../errors/InvalidLoginError";
 import { LoginRequest } from "../contracts/requests/LoginRequest";
 import { LoginResponse } from "../contracts/responses/LoginResponse";
@@ -72,9 +73,7 @@ class AccountService {
             throw new InvalidLoginError();
         }
 
-        const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
-            expiresIn: "1h",
-        });
+        const token = AuthMiddleware.generateToken(user);
 
         return new LoginResponse({ token: token });
     }

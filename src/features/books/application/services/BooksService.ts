@@ -1,6 +1,7 @@
 import { AppDataSource } from "../../../../lib/database/Database";
 import { Book } from "../../dal/Entities/Book";
 import { CreateBookRequest } from "../contracts/requests/CreateBookRequest";
+import EntityNotFoundError from "../../../../lib/errors/EntityNotFoundError";
 import ExistingBookWithISBNError from "../errors/ExistingBookWithISBNError";
 import GenerateSummaryError from "../errors/GenerateSummaryError";
 import { Logger } from "../../../../lib/logger/Logger";
@@ -8,6 +9,7 @@ import { OpenAI } from "openai";
 import { PaginatedResponse } from "../../../../lib/api/PaginatedResponse";
 import { Repository } from "typeorm";
 import RequiredFieldError from "../../../../lib/errors/RequiredFieldError";
+import { UpdateBookRequest } from "../contracts/requests/UpdateBookRequest";
 
 const openAIService = new OpenAI();
 
@@ -42,6 +44,10 @@ class BooksService {
             throw new RequiredFieldError("Title");
         }
 
+        if (!req.author) {
+            throw new RequiredFieldError("Author");
+        }
+
         if (!req.publicationYear) {
             throw new RequiredFieldError("Publication Year");
         }
@@ -56,9 +62,34 @@ class BooksService {
 
         book.isbn = req.isbn;
         book.title = req.title;
+        book.author = req.author;
         book.publicationYear = req.publicationYear;
         book.language = req.language;
         book.summary = summary!;
+
+        return await this.booksRepo.save(book);
+    }
+
+    async update(id: string, req: UpdateBookRequest): Promise<Book> {
+        let numId = Number(id);
+
+        if (Number.isNaN(numId)) {
+            throw new RequiredFieldError("Id");
+        }
+
+        let book = await this.booksRepo.findOneBy({
+            id: numId,
+        });
+
+        if (book == null) {
+            throw new EntityNotFoundError("Book", id);
+        }
+
+        book.isbn = req.isbn ?? book.isbn;
+        book.title = req.title ?? book.title;
+        book.author = req.author ?? book.author;
+        book.publicationYear = req.publicationYear ?? book.publicationYear;
+        book.language = req.language ?? book.language;
 
         return await this.booksRepo.save(book);
     }
