@@ -1,13 +1,16 @@
+import { Repository, createQueryBuilder } from "typeorm";
+
 import { AppDataSource } from "../../../../lib/database/Database";
 import { Book } from "../../dal/Entities/Book";
 import { CreateBookRequest } from "../contracts/requests/CreateBookRequest";
 import EntityNotFoundError from "../../../../lib/errors/EntityNotFoundError";
 import ExistingBookWithISBNError from "../errors/ExistingBookWithISBNError";
 import GenerateSummaryError from "../errors/GenerateSummaryError";
+import { LanguageResponse } from "../contracts/responses/LanguageResponse";
 import { Logger } from "../../../../lib/logger/Logger";
 import { OpenAI } from "openai";
 import { PaginatedResponse } from "../../../../lib/api/PaginatedResponse";
-import { Repository } from "typeorm";
+import { PublicationYearResponse } from "../contracts/responses/PublicationYearResponse";
 import RequiredFieldError from "../../../../lib/errors/RequiredFieldError";
 import { UpdateBookRequest } from "../contracts/requests/UpdateBookRequest";
 
@@ -20,6 +23,38 @@ class BooksService {
     async get(): Promise<PaginatedResponse<Book>> {
         let result = await this.booksRepo.find();
         return new PaginatedResponse<Book>({
+            page: 1,
+            count: result.length,
+            total: result.length,
+            items: result,
+        });
+    }
+
+    async getPublicationYears(): Promise<
+        PaginatedResponse<PublicationYearResponse>
+    > {
+        let result = await this.booksRepo
+            .createQueryBuilder("book")
+            .select("book.publicationYear", "year")
+            .distinct(true)
+            .getRawMany();
+
+        return new PaginatedResponse<PublicationYearResponse>({
+            page: 1,
+            count: result.length,
+            total: result.length,
+            items: result,
+        });
+    }
+
+    async getLanguages(): Promise<PaginatedResponse<LanguageResponse>> {
+        let result = await this.booksRepo
+            .createQueryBuilder("book")
+            .select("book.language", "language")
+            .distinct(true)
+            .getRawMany();
+
+        return new PaginatedResponse<LanguageResponse>({
             page: 1,
             count: result.length,
             total: result.length,
