@@ -2,31 +2,68 @@ import { Repository, createQueryBuilder } from "typeorm";
 
 import { AppDataSource } from "../../../../lib/database/Database";
 import { Book } from "../../dal/Entities/Book";
+import { BookResponse } from "./../contracts/responses/BookResponse";
 import { CreateBookRequest } from "../contracts/requests/CreateBookRequest";
 import EntityNotFoundError from "../../../../lib/errors/EntityNotFoundError";
 import ExistingBookWithISBNError from "../errors/ExistingBookWithISBNError";
 import GenerateSummaryError from "../errors/GenerateSummaryError";
+import InvalidRequestError from "../../../../lib/authentication/errors/InvalidRequestError";
 import { LanguageResponse } from "../contracts/responses/LanguageResponse";
 import { Logger } from "../../../../lib/logger/Logger";
 import { OpenAI } from "openai";
 import { PaginatedResponse } from "../../../../lib/api/PaginatedResponse";
 import { PublicationYearResponse } from "../contracts/responses/PublicationYearResponse";
 import RequiredFieldError from "../../../../lib/errors/RequiredFieldError";
+import { SearchBookRequest } from "../contracts/requests/SearchBookRequest";
 import { UpdateBookRequest } from "../contracts/requests/UpdateBookRequest";
 
 const openAIService = new OpenAI();
 
 class BooksService {
-    private readonly booksRepo: Repository<Book> =
+    private readonly booksRepo: Repository<BookResponse> =
         AppDataSource.getRepository(Book);
 
-    async get(): Promise<PaginatedResponse<Book>> {
+    async get(): Promise<PaginatedResponse<BookResponse>> {
         let result = await this.booksRepo.find();
-        return new PaginatedResponse<Book>({
+
+        let response: BookResponse[] = result.map((book) => ({
+            id: book.id,
+            isbn: book.isbn,
+            title: book.title,
+            author: book.author,
+            publicationYear: book.publicationYear,
+            language: book.language,
+            summary: book.summary,
+        }));
+
+        return new PaginatedResponse<BookResponse>({
             page: 1,
             count: result.length,
             total: result.length,
-            items: result,
+            items: response,
+        });
+    }
+
+    async search(
+        req: SearchBookRequest
+    ): Promise<PaginatedResponse<BookResponse>> {
+        let result = await this.booksRepo.find();
+
+        let response: BookResponse[] = result.map((book) => ({
+            id: book.id,
+            isbn: book.isbn,
+            title: book.title,
+            author: book.author,
+            publicationYear: book.publicationYear,
+            language: book.language,
+            summary: book.summary,
+        }));
+
+        return new PaginatedResponse<BookResponse>({
+            page: 1,
+            count: result.length,
+            total: result.length,
+            items: response,
         });
     }
 
@@ -69,6 +106,10 @@ class BooksService {
     }
 
     async create(req: CreateBookRequest): Promise<Book> {
+        if (!req.validate()) {
+            throw new InvalidRequestError();
+        }
+
         if (!req.isbn) {
             throw new RequiredFieldError("ISBN");
         }
@@ -111,7 +152,11 @@ class BooksService {
         return await this.booksRepo.save(book);
     }
 
-    async update(id: string, req: UpdateBookRequest): Promise<Book> {
+    async update(id: string, req: UpdateBookRequest): Promise<BookResponse> {
+        if (!req.validate()) {
+            throw new InvalidRequestError();
+        }
+
         let numId = Number(id);
 
         if (Number.isNaN(numId)) {
@@ -132,7 +177,19 @@ class BooksService {
         book.publicationYear = req.publicationYear ?? book.publicationYear;
         book.language = req.language ?? book.language;
 
-        return await this.booksRepo.save(book);
+        book = await this.booksRepo.save(book);
+
+        let response: BookResponse = {
+            id: book.id,
+            isbn: book.isbn,
+            title: book.title,
+            author: book.author,
+            publicationYear: book.publicationYear,
+            language: book.language,
+            summary: book.summary,
+        };
+
+        return response;
     }
 
     private async generateSummary(isbn: string, title: string) {
