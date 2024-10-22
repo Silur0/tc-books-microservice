@@ -1,3 +1,4 @@
+import AuthMiddleware from "../../../lib/authentication/AuthMiddleware";
 import BooksService from "../application/services/BooksService";
 import { CreateBookRequest } from "../application/contracts/requests/CreateBookRequest";
 import { Router } from "express";
@@ -35,27 +36,35 @@ router.get(`/${PREFIX}/languages`, async (req, res, next) => {
     }
 });
 
-router.post(`/${PREFIX}`, async (req, res, next) => {
-    try {
-        const request = new CreateBookRequest(req.body);
+router.post(
+    `/${PREFIX}`,
+    AuthMiddleware.authenticateToken,
+    async (req, res, next) => {
+        try {
+            const request = new CreateBookRequest(req.body);
 
-        let result = await BooksService.create(request);
-        res.send(result);
-    } catch (error) {
-        next(error);
+            let result = await BooksService.create(request);
+            res.send(result);
+        } catch (error) {
+            next(error);
+        }
     }
-});
+);
 
-router.put(`/${PREFIX}/:id`, async (req, res, next) => {
-    try {
-        const request = new UpdateBookRequest(req.body);
+router.put(
+    `/${PREFIX}/:id`,
+    AuthMiddleware.authenticateToken,
+    async (req, res, next) => {
+        try {
+            const request = new UpdateBookRequest(req.body);
 
-        let result = await BooksService.update(req.params.id, request);
-        res.send(result);
-    } catch (error) {
-        next(error);
+            let result = await BooksService.update(req.params.id, request);
+            res.send(result);
+        } catch (error) {
+            next(error);
+        }
     }
-});
+);
 
 router.post(`/${PREFIX}/search`, async (req, res, next) => {
     try {
