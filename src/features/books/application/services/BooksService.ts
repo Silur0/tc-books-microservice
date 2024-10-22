@@ -8,6 +8,7 @@ import EntityNotFoundError from "../../../../lib/errors/EntityNotFoundError";
 import ExistingBookWithISBNError from "../errors/ExistingBookWithISBNError";
 import GenerateSummaryError from "../errors/GenerateSummaryError";
 import InvalidRequestError from "../../../../lib/authentication/errors/InvalidRequestError";
+import { Language } from "./../../../languages/dal/Entities/Language";
 import { LanguageResponse } from "../contracts/responses/LanguageResponse";
 import { Logger } from "../../../../lib/logger/Logger";
 import { OpenAI } from "openai";
@@ -24,29 +25,6 @@ class BooksService {
         AppDataSource.getRepository(Book);
 
     async get(): Promise<PaginatedResponse<BookResponse>> {
-        let result = await this.booksRepo.find();
-
-        let response: BookResponse[] = result.map((book) => ({
-            id: book.id,
-            isbn: book.isbn,
-            title: book.title,
-            author: book.author,
-            publicationYear: book.publicationYear,
-            language: book.language,
-            summary: book.summary,
-        }));
-
-        return new PaginatedResponse<BookResponse>({
-            page: 1,
-            count: result.length,
-            total: result.length,
-            items: response,
-        });
-    }
-
-    async search(
-        req: SearchBookRequest
-    ): Promise<PaginatedResponse<BookResponse>> {
         let result = await this.booksRepo.find();
 
         let response: BookResponse[] = result.map((book) => ({
@@ -190,6 +168,52 @@ class BooksService {
         };
 
         return response;
+    }
+
+    async search(
+        req: SearchBookRequest
+    ): Promise<PaginatedResponse<BookResponse>> {
+        if (!req.validate()) {
+            throw new InvalidRequestError();
+        }
+
+        const { key, years, languages } = req;
+
+        const query = this.booksRepo.createQueryBuilder("book");
+
+        if (years && years.length > 0) {
+            query.andWhere("book.publicationYear IN (:...years)", { years });
+        }
+
+        if (languages && languages.length > 0) {
+            query.andWhere("book.language IN (:...languages)", { languages });
+        }
+
+        if (key) {
+            query.andWhere(
+                "(book.title ILIKE :key OR book.isbn ILIKE :key OR book.author ILIKE :key)",
+                { key: `%${key}%` }
+            );
+        }
+
+        let result = await query.getMany();
+
+        let response: BookResponse[] = result.map((book) => ({
+            id: book.id,
+            isbn: book.isbn,
+            title: book.title,
+            author: book.author,
+            publicationYear: book.publicationYear,
+            language: book.language,
+            summary: book.summary,
+        }));
+
+        return new PaginatedResponse<BookResponse>({
+            page: 1,
+            count: result.length,
+            total: result.length,
+            items: response,
+        });
     }
 
     private async generateSummary(isbn: string, title: string) {

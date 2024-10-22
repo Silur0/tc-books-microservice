@@ -7,13 +7,19 @@ export class UpdateBookRequest {
     publicationYear: string | undefined;
     language: string | undefined;
 
-    constructor(
-        isbn: string,
-        title: string,
-        author: string,
-        publicationYear: string,
-        language: string
-    ) {
+    constructor({
+        isbn,
+        title,
+        author,
+        publicationYear,
+        language,
+    }: {
+        isbn: string;
+        title: string;
+        author: string;
+        publicationYear: string;
+        language: string;
+    }) {
         this.isbn = isbn;
         this.title = title;
         this.author = author;

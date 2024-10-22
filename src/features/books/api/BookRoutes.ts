@@ -1,6 +1,7 @@
 import BooksService from "../application/services/BooksService";
 import { CreateBookRequest } from "../application/contracts/requests/CreateBookRequest";
 import { Router } from "express";
+import { SearchBookRequest } from "../application/contracts/requests/SearchBookRequest";
 import { UpdateBookRequest } from "../application/contracts/requests/UpdateBookRequest";
 
 const router = Router();
@@ -36,14 +37,7 @@ router.get(`/${PREFIX}/languages`, async (req, res, next) => {
 
 router.post(`/${PREFIX}`, async (req, res, next) => {
     try {
-        const { isbn, title, author, publicationYear, language } = req.body;
-        const request = new CreateBookRequest(
-            isbn,
-            title,
-            author,
-            publicationYear,
-            language
-        );
+        const request = new CreateBookRequest(req.body);
 
         let result = await BooksService.create(request);
         res.send(result);
@@ -54,16 +48,20 @@ router.post(`/${PREFIX}`, async (req, res, next) => {
 
 router.put(`/${PREFIX}/:id`, async (req, res, next) => {
     try {
-        const { isbn, title, author, publicationYear, language } = req.body;
-        const request = new UpdateBookRequest(
-            isbn,
-            title,
-            author,
-            publicationYear,
-            language
-        );
+        const request = new UpdateBookRequest(req.body);
 
         let result = await BooksService.update(req.params.id, request);
+        res.send(result);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post(`/${PREFIX}/search`, async (req, res, next) => {
+    try {
+        const request = new SearchBookRequest(req.body);
+
+        let result = await BooksService.search(request);
         res.send(result);
     } catch (error) {
         next(error);
