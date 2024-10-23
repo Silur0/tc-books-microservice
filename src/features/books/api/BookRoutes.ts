@@ -11,7 +11,16 @@ const PREFIX = "books";
 
 router.get(`/${PREFIX}`, async (req, res, next) => {
     try {
-        let result = await BooksService.get();
+        let result = await BooksService.getAll();
+        res.send(result);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get(`/${PREFIX}/:id`, async (req, res, next) => {
+    try {
+        let result = await BooksService.get(req.params.id);
         res.send(result);
     } catch (error) {
         next(error);

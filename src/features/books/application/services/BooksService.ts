@@ -22,7 +22,7 @@ class BooksService {
     private readonly booksRepo: Repository<BookResponse> =
         AppDataSource.getRepository(Book);
 
-    async get(): Promise<PaginatedResponse<BookResponse>> {
+    async getAll(): Promise<PaginatedResponse<BookResponse>> {
         let result = await this.booksRepo.find();
 
         let response: BookResponse[] = result.map((book) => ({
@@ -41,6 +41,34 @@ class BooksService {
             total: result.length,
             items: response,
         });
+    }
+
+    async get(id: string): Promise<BookResponse> {
+        let numId = Number(id);
+
+        if (Number.isNaN(numId)) {
+            throw new RequiredFieldError("Id");
+        }
+
+        let book = await this.booksRepo.findOneBy({
+            id: numId,
+        });
+
+        if (book == null) {
+            throw new EntityNotFoundError("Book", id);
+        }
+
+        let response: BookResponse = {
+            id: book.id,
+            isbn: book.isbn,
+            title: book.title,
+            author: book.author,
+            publicationYear: book.publicationYear,
+            language: book.language,
+            summary: book.summary,
+        };
+
+        return response;
     }
 
     async getPublicationYears(): Promise<
