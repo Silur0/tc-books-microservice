@@ -1,5 +1,3 @@
-import { Repository, createQueryBuilder } from "typeorm";
-
 import { AppDataSource } from "../../../../lib/database/Database";
 import { Book } from "../../dal/Entities/Book";
 import { BookResponse } from "./../contracts/responses/BookResponse";
@@ -8,12 +6,12 @@ import EntityNotFoundError from "../../../../lib/errors/EntityNotFoundError";
 import ExistingBookWithISBNError from "../errors/ExistingBookWithISBNError";
 import GenerateSummaryError from "../errors/GenerateSummaryError";
 import InvalidRequestError from "../../../../lib/authentication/errors/InvalidRequestError";
-import { Language } from "./../../../languages/dal/Entities/Language";
 import { LanguageResponse } from "../contracts/responses/LanguageResponse";
 import { Logger } from "../../../../lib/logger/Logger";
 import { OpenAI } from "openai";
 import { PaginatedResponse } from "../../../../lib/api/PaginatedResponse";
 import { PublicationYearResponse } from "../contracts/responses/PublicationYearResponse";
+import { Repository } from "typeorm";
 import RequiredFieldError from "../../../../lib/errors/RequiredFieldError";
 import { SearchBookRequest } from "../contracts/requests/SearchBookRequest";
 import { UpdateBookRequest } from "../contracts/requests/UpdateBookRequest";
@@ -214,6 +212,16 @@ class BooksService {
             total: result.length,
             items: response,
         });
+    }
+
+    async delete(id: string) {
+        let numId = Number(id);
+
+        if (Number.isNaN(numId)) {
+            throw new RequiredFieldError("Id");
+        }
+
+        this.booksRepo.delete(numId);
     }
 
     private async generateSummary(isbn: string, title: string) {

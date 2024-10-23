@@ -77,4 +77,17 @@ router.post(`/${PREFIX}/search`, async (req, res, next) => {
     }
 });
 
+router.delete(
+    `/${PREFIX}/:id`,
+    AuthMiddleware.authenticateToken,
+    async (req, res, next) => {
+        try {
+            await BooksService.delete(req.params.id);
+            res.status(204).send();
+        } catch (error) {
+            next(error);
+        }
+    }
+);
+
 export default router;
