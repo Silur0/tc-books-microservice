@@ -1,10 +1,11 @@
 import { AppDataSource } from "../../../../lib/database/Database";
 import { Book } from "../../dal/Entities/Book";
+import { BookRecommendationResponse } from "../contracts/responses/BookRecommendationResponse";
 import { BookResponse } from "./../contracts/responses/BookResponse";
 import { CreateBookRequest } from "../contracts/requests/CreateBookRequest";
 import EntityNotFoundError from "../../../../lib/errors/EntityNotFoundError";
 import ExistingBookWithISBNError from "../errors/ExistingBookWithISBNError";
-import GenerateSummaryError from "../errors/GenerateSummaryError";
+import GenerateError from "../errors/GenerateError";
 import InvalidRequestError from "../../../../lib/authentication/errors/InvalidRequestError";
 import { LanguageResponse } from "../contracts/responses/LanguageResponse";
 import { Logger } from "../../../../lib/logger/Logger";
@@ -252,6 +253,33 @@ class BooksService {
         this.booksRepo.delete(numId);
     }
 
+    async getRecommendations(
+        id: string
+    ): Promise<PaginatedResponse<BookRecommendationResponse>> {
+        let numId = Number(id);
+
+        if (Number.isNaN(numId)) {
+            throw new RequiredFieldError("Id");
+        }
+
+        let book = await this.booksRepo.findOneBy({
+            id: numId,
+        });
+
+        if (book == null) {
+            throw new EntityNotFoundError("Book", id);
+        }
+
+        let result = await this.generateRecommendations(book.isbn, book.title);
+
+        return new PaginatedResponse<BookRecommendationResponse>({
+            page: 1,
+            count: result.length,
+            total: result.length,
+            items: result,
+        });
+    }
+
     private async generateSummary(isbn: string, title: string) {
         try {
             let result = await openAIService.chat.completions.create({
@@ -273,7 +301,58 @@ class BooksService {
             Logger.log(result, result.choices[0].message);
             return result.choices[0].message.content;
         } catch (error) {
-            throw new GenerateSummaryError();
+            throw new GenerateError("summary");
+        }
+    }
+
+    private async generateRecommendations(
+        isbn: string,
+        title: string
+    ): Promise<BookRecommendationResponse[]> {
+        try {
+            const generated = await openAIService.chat.completions.create({
+                model: "gpt-3.5-turbo",
+                temperature: 0.7,
+                max_tokens: 200,
+                response_format: { type: "json_object" },
+                messages: [
+                    {
+                        role: "system",
+                        content:
+                            "You are a helpful assistant that gives book recommendations.",
+                    },
+                    {
+                        role: "user",
+                        content: `Based on this book with the following details:\n\nTitle: ${title}\nISBN: ${isbn}. Please recommend 3 other similar books.
+                            Provide the recommendations in the following JSON format:
+                            books: [
+                                { "title", "isbn", "language", "year", "author" }
+                            ]
+                            `,
+                    },
+                ],
+            });
+
+            Logger.log(generated);
+
+            const result = generated.choices[0].message.content?.trim();
+
+            Logger.log(result);
+
+            const parsedResult = JSON.parse(result!);
+            const response: BookResponse[] = parsedResult.books.map(
+                (e: any) => ({
+                    isbn: e.isbn,
+                    title: e.title,
+                    author: e.author,
+                    publicationYear: e.year,
+                    language: e.language,
+                })
+            );
+
+            return response;
+        } catch (error) {
+            throw new GenerateError("recommendations");
         }
     }
 }

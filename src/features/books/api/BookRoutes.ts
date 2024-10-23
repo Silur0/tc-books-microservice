@@ -45,6 +45,15 @@ router.get(`/${PREFIX}/:id/`, async (req, res, next) => {
     }
 });
 
+router.get(`/${PREFIX}/:id/recommendations`, async (req, res, next) => {
+    try {
+        let result = await BooksService.getRecommendations(req.params.id);
+        res.send(result);
+    } catch (error) {
+        next(error);
+    }
+});
+
 router.post(
     `/${PREFIX}`,
     AuthMiddleware.authenticateToken,
