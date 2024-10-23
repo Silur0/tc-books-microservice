@@ -18,15 +18,6 @@ router.get(`/${PREFIX}`, async (req, res, next) => {
     }
 });
 
-router.get(`/${PREFIX}/:id`, async (req, res, next) => {
-    try {
-        let result = await BooksService.get(req.params.id);
-        res.send(result);
-    } catch (error) {
-        next(error);
-    }
-});
-
 router.get(`/${PREFIX}/years`, async (req, res, next) => {
     try {
         let result = await BooksService.getPublicationYears();
@@ -39,6 +30,15 @@ router.get(`/${PREFIX}/years`, async (req, res, next) => {
 router.get(`/${PREFIX}/languages`, async (req, res, next) => {
     try {
         let result = await BooksService.getLanguages();
+        res.send(result);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get(`/${PREFIX}/:id/`, async (req, res, next) => {
+    try {
+        let result = await BooksService.get(req.params.id);
         res.send(result);
     } catch (error) {
         next(error);
