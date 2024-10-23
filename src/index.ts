@@ -2,6 +2,7 @@ import AccountRoutes from "./features/accounts/api/AccountRoutes";
 import { AppDataSource } from "./lib/database/Database";
 import BookRoutes from "./features/books/api/BookRoutes";
 import ErrorMiddleware from "./lib/errors/middleware/ErrorMiddleware";
+import EtlService from "./lib/etl/EtlService";
 import LanguageRoutes from "./features/languages/api/LanguageRoutes";
 import { Logger } from "./lib/logger/Logger";
 import dotenv from "dotenv";
@@ -28,6 +29,7 @@ app.use(ErrorMiddleware.handleError);
 
 AppDataSource.initialize()
     .then(() => {
+        EtlService.run();
         Logger.log("Database connected successfully");
         app.listen(PORT, () => {
             Logger.log(`Server is running on port ${PORT}`);
