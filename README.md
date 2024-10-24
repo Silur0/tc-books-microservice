@@ -30,9 +30,9 @@ To find your Node.js version, run:
   node -v
 ```
 
-To find your PostgreSQL version, run:
-
 -   **PostgreSQL**: v16.4.2
+
+To find your PostgreSQL version, run:
 
 ```bash
   psql --version
