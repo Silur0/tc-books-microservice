@@ -1,6 +1,24 @@
-## Backend Setup
+## Backend
 
 The backend is implemented using Node.js, utilizing two key frameworks: TypeORM for object-relational mapping and Express.js for building the web server. The application is powered by a PostgreSQL database.
+
+### Architecture
+
+This architecture emphasizes modular and autonomous components. Each component (e.g., books, accounts, languages) represents a distinct product domain, similar to "bounded contexts" in domain-driven design. By isolating APIs, business logic, and data access within each module, the system achieves clear modular boundaries, reducing dependencies between components.
+
+```
+my-system
+├─ features (components)
+│  ├─ books
+│  │ ├─ api
+│  │ ├─ domain
+│  │ ├─ data-access
+│  ├─ accounts
+│  ├─ languages
+├─ libraries (generic cross-component functionality)
+│  ├─ logger
+│  ├─ authenticator
+```
 
 ### Versions Used
 
